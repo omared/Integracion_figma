@@ -1,0 +1,21 @@
+name: Test Figma API Connection
+
+on:
+  workflow_dispatch: # se puede ejecutar manualmente
+  push:
+    branches: [ main ]
+
+jobs:
+  figma-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout del código
+        uses: actions/checkout@v4
+
+      - name: Probar conexión con la API de Figma
+        env:
+          FIGMA_TOKEN: ${{ secrets.FIGMA_TOKEN }}
+        run: |
+          echo "🔍 Probando conexión con Figma..."
+          curl -s -H "X-Figma-Token: $FIGMA_TOKEN" https://api.figma.com/v1/me | jq .
+
