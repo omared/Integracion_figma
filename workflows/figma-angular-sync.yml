@@ -1,0 +1,55 @@
+name: 🔄 Figma + Angular Sync
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  sync-figma-angular:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1️⃣ Clona el repo
+      - name: 📥 Checkout del código
+        uses: actions/checkout@v4
+
+      # 2️⃣ Instala Node.js
+      - name: 🧰 Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      # 3️⃣ Instala dependencias
+      - name: 📦 Instalar dependencias
+        run: npm ci
+
+      # 4️⃣ Verifica conexión con Figma API
+      - name: 🔍 Probar conexión con Figma
+        run: node test-figma-connection.js
+        env:
+          FIGMA_TOKEN: ${{ secrets.FIGMA_TOKEN }}
+          FIGMA_FILE_KEY: ${{ secrets.FIGMA_FILE_KEY }}
+
+      # 5️⃣ (Opcional) Descargar archivo de Figma
+      - name: 📂 Descargar datos del archivo Figma
+        run: |
+          mkdir -p figma_data
+          curl -H "X-Figma-Token: ${{ secrets.FIGMA_TOKEN }}" \
+            https://api.figma.com/v1/files/${{ secrets.FIGMA_FILE_KEY }} \
+            -o figma_data/figma-file.json
+        continue-on-error: true
+
+      # 6️⃣ Compila el proyecto Angular
+      - name: 🧱 Compilar Angular
+        run: |
+          npm install -g @angular/cli
+          ng build --configuration production
+
+      # 7️⃣ (Opcional) Guarda el archivo de Figma descargado como artefacto
+      - name: 📦 Guardar artefacto de Figma
+        uses: actions/upload-artifact@v4
+        with:
+          name: figma-file
+          path: figma_data/figma-file.json
